@@ -5,7 +5,8 @@
   "type": "module",
   "main": "src/server.ts",
   "scripts": {
-    "dev": "tsx ./src/server.ts"
+    "dev": "tsx ./src/server.ts",
+    "seed": "tsx ./prisma/seed.ts"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "prisma": "^6.19.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.9",
     "ts-node": "^10.9.2",
