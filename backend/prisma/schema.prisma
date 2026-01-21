@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IngredientCategory {
+  KILOGRAMAS
+  GRAMAS
+  ML
+  LITROS
+  UNIDADE
+}
+
+enum SaleMethod {
+  MARGEM
+  VALOR_FIXO
+}
+
+model User {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String
+  email       String       @unique
+  password    String
+  ingredients Ingredient[]
+  recipes     Recipe[]
+
+  @@map("users")
+}
+
+model Ingredient {
+  id          String             @id @default(uuid()) @db.Uuid
+  createdBy   String             @db.Uuid
+  name        String
+  category    IngredientCategory 
+  amount      Decimal            @db.Decimal
+  price       Decimal            @db.Decimal
+  description String
+  
+  user        User               @relation(fields: [createdBy], references: [id])
+  recipes     RecipeIngredient[]
+
+  @@map("ingredients")
+}
+
+model Recipe {
+  id          String             @id @default(uuid()) @db.Uuid
+  createdBy   String             @db.Uuid
+  name        String
+  description String
+
+  user        User               @relation(fields: [createdBy], references: [id])
+  ingredients RecipeIngredient[]
+  salePrice   SalePrice?
+
+  @@map("recipes")
+}
+
+model RecipeIngredient {
+  id           String     @id @default(uuid()) @db.Uuid
+  recipeId     String     @db.Uuid
+  ingredientId String     @db.Uuid
+  amount       Decimal    @db.Decimal
+  price        Decimal    @db.Decimal
+
+  recipe       Recipe     @relation(fields: [recipeId], references: [id])
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@map("recipes_ingredients")
+}
+
+model SalePrice {
+  recipeId   String     @id @db.Uuid
+  totalPrice Decimal    @db.Decimal
+  method     SaleMethod 
+  amount     Decimal    @db.Decimal
+  finalPrice Decimal    @db.Decimal
+
+  recipe     Recipe     @relation(fields: [recipeId], references: [id])
+
+  @@map("sale_price")
+}
