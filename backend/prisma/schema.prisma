@@ -63,6 +63,7 @@ model recipeIngredient {
   id           String     @id @default(uuid()) @db.Uuid
   recipeId     String     @db.Uuid
   ingredientId String     @db.Uuid
+  category     IngredientCategory
   amount       Decimal    @db.Decimal
   price        Decimal    @db.Decimal
 
