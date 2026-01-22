@@ -1,12 +1,12 @@
 export type dataToConvert = {
-  category: "KILOGRAMAS" | "GRAMAS" | "LITROS" | "ML" | "UNIDADE";
+  unit: "KILOGRAMAS" | "GRAMAS" | "LITROS" | "ML" | "UNIDADE";
   amount: number;
 };
 
 export function unitConversion(data: dataToConvert) {
-  const { category, amount } = data;
+  const { unit, amount } = data;
 
-  if (["KILOGRAMAS", "LITROS"].includes(category)) {
+  if (["KILOGRAMAS", "LITROS"].includes(unit)) {
     return amount * 1000;
   }
 

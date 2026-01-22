@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum IngredientCategory {
+enum unitCategory {
   KILOGRAMAS
   GRAMAS
   ML
@@ -16,8 +16,8 @@ enum IngredientCategory {
 }
 
 enum saleMethod {
-  MARGEM
-  VALOR_FIXO
+  PERCENTAGE
+  FIXED
 }
 
 model user {
@@ -33,14 +33,14 @@ model user {
 
 model ingredient {
   id          String             @id @default(uuid()) @db.Uuid
-  createdBy   String             @db.Uuid
+  userId      String             @db.Uuid
   name        String
-  category    IngredientCategory 
+  unit        unitCategory 
   amount      Decimal            @db.Decimal
   price       Decimal            @db.Decimal
-  description String
+  description String?
   
-  users        user               @relation(fields: [createdBy], references: [id])
+  users        user               @relation(fields: [userId], references: [id])
   recipes     recipeIngredient[]
 
   @@map("ingredients")
@@ -48,11 +48,11 @@ model ingredient {
 
 model recipe {
   id          String             @id @default(uuid()) @db.Uuid
-  createdBy   String             @db.Uuid
+  userId      String             @db.Uuid
   name        String
-  description String
+  description String?
 
-  users        user               @relation(fields: [createdBy], references: [id])
+  users        user               @relation(fields: [userId], references: [id])
   ingredients recipeIngredient[]
   salePrice   SalePrice?
 
@@ -63,9 +63,9 @@ model recipeIngredient {
   id           String     @id @default(uuid()) @db.Uuid
   recipeId     String     @db.Uuid
   ingredientId String     @db.Uuid
-  category     IngredientCategory
-  amount       Decimal    @db.Decimal
-  price        Decimal    @db.Decimal
+  unitUsed     unitCategory
+  amountUsed   Decimal    @db.Decimal(10, 3)
+  price        Decimal    @db.Decimal(10, 2)
 
   recipes       recipe     @relation(fields: [recipeId], references: [id])
   ingredients   ingredient @relation(fields: [ingredientId], references: [id])
@@ -74,11 +74,11 @@ model recipeIngredient {
 }
 
 model SalePrice {
-  recipeId   String     @id @db.Uuid
-  totalPrice Decimal    @db.Decimal
+  id         String     @id @default(uuid())
+  recipeId   String     @unique @db.Uuid
   method     saleMethod 
-  amount     Decimal    @db.Decimal
-  finalPrice Decimal    @db.Decimal
+  value      Decimal    @db.Decimal(10, 2)
+  finalPrice Decimal    @db.Decimal(10, 2)
 
   recipes     recipe     @relation(fields: [recipeId], references: [id])
 

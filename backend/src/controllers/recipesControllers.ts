@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
-import { unitConversion } from "../services/UnitConversionService.js";
+import { unitConversion } from "../services/unitConversionService.js";
 import { costCalculator } from "../services/calculatorService.js";
 
 export const getAll = async (req: Request, res: Response) => {
@@ -37,7 +37,7 @@ export const create = async (req: Request, res: Response) => {
       data: {
         name,
         description,
-        createdBy: userId,
+        userId,
       },
     });
 
@@ -73,11 +73,11 @@ export const removeById = async (req: Request, res: Response) => {
 
 export const createIngredient = async (req: Request, res: Response) => {
   const recipeId = req.params.id as string
-  const { ingredientId, category, amount } = req.body;
+  const { ingredientId, unitUsed, amountUsed } = req.body;
 
   const ingredientInformation = await prisma.ingredient.findUnique({
     where: { id: ingredientId },
-    select: {category: true, amount:true, price: true}
+    select: {unit: true, amount:true, price: true}
   });
 
   if(!ingredientInformation) {
@@ -85,16 +85,16 @@ export const createIngredient = async (req: Request, res: Response) => {
   }
 
   const costIngredient = costCalculator({
-    quantidadeReal: unitConversion({"category": ingredientInformation.category, "amount": ingredientInformation.amount.toNumber()}),
-    quantidadeUtilizada: unitConversion({"category": category, "amount": amount}),
+    quantidadeReal: unitConversion({"unit": ingredientInformation.unit, "amount": ingredientInformation.amount.toNumber()}),
+    quantidadeUtilizada: unitConversion({"unit": unitUsed, "amount": amountUsed}),
     valorReal: ingredientInformation.price.toNumber()})
 
   const result = await prisma.recipeIngredient.create({
     data: {
       recipeId,
       ingredientId,
-      category,
-      amount,
+      unitUsed,
+      amountUsed,
       price: costIngredient
     }
   })

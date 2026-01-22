@@ -4,7 +4,7 @@ import { prisma } from "../config/db.js";
 type ingredient = {
   userId: string;
   name: string;
-  category: "KILOGRAMAS" | "GRAMAS" | "LITROS" | "ML" | "UNIDADE";
+  unit: "KILOGRAMAS" | "GRAMAS" | "LITROS" | "ML" | "UNIDADE";
   amount: number;
   price: number;
   description: string;
@@ -41,10 +41,9 @@ export const getById = async (req: Request, res: Response) => {
 export const create = async (req: Request, res: Response) => {
   const { userId, data } = req.body;
 
-  const listItem = data.map((item: ingredient) => ({
-    createdBy: userId,
-    ...item,
-  }));
+  const listItem = data.map((item: ingredient) =>
+    Object.assign({ userId: userId }, item),
+  );
 
   try {
     const result = await prisma.ingredient.createMany({
@@ -68,7 +67,9 @@ export const removeById = async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await prisma.ingredient.delete({ where: { id: ingredientId } });
+    const result = await prisma.ingredient.delete({
+      where: { id: ingredientId },
+    });
 
     if (!result) {
       return res.status(404).json({ message: "Ingredient not found" });
