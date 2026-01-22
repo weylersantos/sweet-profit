@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/db.js";
+import { unitConversion } from "../services/UnitConversionService.js";
+import { costCalculator } from "../services/calculatorService.js";
 
 export const getAll = async (req: Request, res: Response) => {
   const recipes = await prisma.recipe.findMany();
@@ -67,4 +69,34 @@ export const removeById = async (req: Request, res: Response) => {
   } catch (err) {
     return res.status(500).json({ error: (err as Error).message });
   }
+};
+
+export const createIngredient = async (req: Request, res: Response) => {
+  const recipeId = req.params.id as string
+  const { ingredientId, category, amount } = req.body;
+
+  const ingredientInformation = await prisma.ingredient.findUnique({
+    where: { id: ingredientId },
+    select: {category: true, amount:true, price: true}
+  });
+
+  if(!ingredientInformation) {
+    return res.status(404).json({ message: "Ingredient not found"})
+  }
+
+  const costIngredient = costCalculator({
+    quantidadeReal: unitConversion({"category": ingredientInformation.category, "amount": ingredientInformation.amount.toNumber()}),
+    quantidadeUtilizada: unitConversion({"category": category, "amount": amount}),
+    valorReal: ingredientInformation.price.toNumber()})
+
+  const result = await prisma.recipeIngredient.create({
+    data: {
+      recipeId,
+      ingredientId,
+      category,
+      amount,
+      price: costIngredient
+    }
+  })
+  return res.status(200).json(result)
 };
